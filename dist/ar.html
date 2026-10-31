@@ -34,7 +34,7 @@ model-viewer{width:min(680px,100%);height:min(58vh,520px);margin:26px auto 0;bac
 .diag .row span:last-child{color:#eab57b;text-align:right}
 .diag button{margin-top:12px;width:100%;background:#1520265c;border:1px solid #ffffff23;border-radius:8px;color:inherit;font:inherit;font-size:10px;padding:11px;cursor:pointer}
 
-[hidden]{display:none!important}.secondary .primary{background:#eab57b;color:#19282b;font-weight:700;border-color:#eab57b}#webxr{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);background:#eab57b;color:#19282b;border:0;border-radius:8px;padding:14px 20px;font:600 12px Manrope,Arial,sans-serif;white-space:nowrap;cursor:pointer}model-viewer:not(:defined)>#webxr{display:none}button:focus-visible,a:focus-visible{outline:2px solid #eab57b;outline-offset:4px}
+[hidden]{display:none!important}.secondary .primary{background:#eab57b;color:#19282b;font-weight:700;border-color:#eab57b}button:focus-visible,a:focus-visible{outline:2px solid #eab57b;outline-offset:4px}
 
 .secondary button{color:#fff6e9;font:600 13px Manrope,Arial,sans-serif;border:1px solid #ffffff23;border-radius:8px;padding:15px 20px;cursor:pointer}.secondary .primary{background:#eab57b;color:#19282b;border-color:#eab57b}.secondary button:disabled{opacity:.5;cursor:wait}.diag a{display:block;color:#eab57b;margin-top:12px}
 </style>
@@ -43,28 +43,27 @@ model-viewer{width:min(680px,100%);height:min(58vh,520px);margin:26px auto 0;bac
 <div class="tree">🌲</div>
 <div class="brand">PINE STATION<small>LOCATION STUDY / AR</small></div>
 <h1>Станция среди сосен<br><span>прямо здесь</span></h1>
-<p class="lead">На Android запускайте AR прямо в Chrome. На iPhone используйте Safari: модель откроется в системном AR-просмотрщике. Размер макета можно изменить двумя пальцами.</p>
+<p class="lead">Поставьте макет станции на пол или стол. Нажмите «Посмотреть в AR» и наведите камеру на поверхность. Размер можно изменить двумя пальцами.</p>
 
-<div class="secondary"><button id="start-ar" class="primary" hidden disabled>Проверяем доступность AR…</button></div>
-<model-viewer id="mv" src="assets/pine-station-ar.glb?v=5" alt="3D-модель лесной станции Pine Station" camera-controls touch-action="pan-y" ar ar-modes="webxr quick-look" ar-scale="auto" ar-placement="floor" environment-image="neutral" shadow-intensity="1" exposure="1.05" loading="eager"><button id="webxr" slot="ar-button">AR в браузере</button></model-viewer>
-<div class="status" id="status">Загрузка AR-макета ≈ 2,4 МБ…</div>
+<div class="secondary"><button id="start-ar" class="primary" disabled>Посмотреть в AR</button></div>
+<model-viewer id="mv" src="assets/pine-station-ar.glb?v=6" alt="3D-модель лесной станции Pine Station" camera-controls touch-action="pan-y" ar ar-modes="webxr quick-look" ar-scale="auto" ar-placement="floor" environment-image="neutral" shadow-intensity="1" exposure="1.05" loading="eager"><span slot="ar-button" hidden aria-hidden="true"></span></model-viewer>
+<div class="status" id="status" role="status" aria-live="polite">Загрузка AR-макета ≈ 2,4 МБ…</div>
 
 <div class="secondary">
-  <a id="scene-viewer" hidden>Запасной запуск через Google</a>
   <a href="./">Полная интерактивная сцена</a>
 </div>
 
 <div class="hint">
-  <b>Как поставить в AR:</b> нажмите «Запустить AR в Chrome» (Android) или «Открыть AR на iPhone» · медленно проведите телефоном над поверхностью, пока не появится сетка · коснитесь экрана — станция встанет на это место · обойдите её кругом.
+  <b>Как поставить в AR:</b> нажмите «Посмотреть в AR» · медленно проведите телефоном над поверхностью, пока не появится сетка · коснитесь экрана — станция встанет на это место · обойдите её кругом.
 </div>
 
 <div class="warn" id="warn"></div>
 <div class="fail" id="fail">Не удалось запустить встроенный просмотрщик. Откройте <a href="./">полную интерактивную сцену</a> — она работает в любом браузере.</div>
 
-<div class="guide">V5 · AR-МАКЕТ · <a href="https://developers.google.com/ar/devices">поддерживаемые AR-телефоны</a> · <a href="#" id="diag-toggle">диагностика</a></div>
+<div class="guide">V6 · AR-МАКЕТ · <a href="https://developers.google.com/ar/devices">поддерживаемые AR-телефоны</a> · <a href="#" id="diag-toggle">диагностика</a></div>
 
 <div class="diag" id="diag">
-  <b>ОТЧЁТ ОБ УСТРОЙСТВЕ · СТРАНИЦА V5</b>
+  <b>ОТЧЁТ ОБ УСТРОЙСТВЕ · СТРАНИЦА V6</b>
   <div class="row"><span>Браузер</span><span id="d-ua">—</span></div>
   <div class="row"><span>Безопасный контекст (HTTPS)</span><span id="d-sec">—</span></div>
   <div class="row"><span>WebXR API в браузере</span><span id="d-xr">—</span></div>
@@ -72,10 +71,9 @@ model-viewer{width:min(680px,100%);height:min(58vh,520px);margin:26px auto 0;bac
   <div class="row"><span>Кнопка AR активна (canActivateAR)</span><span id="d-btn">—</span></div>
   <div class="row"><span>Модель</span><span id="d-glb">—</span></div>
   <div class="row"><span>Последний запуск</span><span id="d-launch">—</span></div>
-  <a id="ar-test" hidden>Проверить системный AR на тестовой модели</a>
   <button id="copy">Скопировать отчёт и отправить разработчику</button>
 </div>
 
-<script type="module" src="./ar.js?v=5"></script>
+<script type="module" src="./ar.js?v=6"></script>
 </body>
 </html>
