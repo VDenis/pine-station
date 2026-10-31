@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 import { OrbitControls } from './vendor/OrbitControls.js';
 import { Reflector } from './vendor/Reflector.js';
-import { mergeGeometries } from './vendor/BufferGeometryUtils.js';
+import { mergeGeometries, mergeVertices } from './vendor/BufferGeometryUtils.js';
+import { createVehicles } from './vehicles.js';
 
 const $ = (id) => document.getElementById(id);
 const scene = new THREE.Scene();
@@ -186,49 +187,9 @@ function charger(x,z){const g=new THREE.Group();g.name='EV charger';g.position.s
 for(const z of [7.5,13.5,19.5])charger(31,z);
 label('E L E C T R I C',3.6,.4,33,3,13.5,'#cbe4cb').rotation.y=-Math.PI/2;
 
-// Three original, unbranded vehicles, built as editable meshes.
-function car(x,z,rotation,color,type){
-  const g=new THREE.Group();g.name=type==='box'?'Forest off-road vehicle':type==='sedan'?'White electric sedan':'Silver SUV';g.position.set(x,.12,z);g.rotation.y=rotation;model.add(g);
-  const isBox=type==='box',sedan=type==='sedan',body=mat(color,.22,.62);body.envMapIntensity=1.3;
-  box(2.12,.62,4.65,0,.91,0,body,g);box(2.17,.24,4.45,0,.61,0,M.edge,g);
-  box(2.08,.36,1.2,0,1.24,1.6,body,g);box(2.08,.24,.8,0,1.18,-1.9,body,g);
-  // Custom tapered cabin silhouette.
-  const w=1.0,h=sedan?.7:isBox?1.35:1.0;
-  const shape=new THREE.Shape();shape.moveTo(-1.45,1.18);shape.lineTo(-1.2,1.3+h);shape.lineTo(isBox?.9:.6,1.3+h);shape.lineTo(1.4,1.18);shape.closePath();
-  const cab=mesh(new THREE.ExtrudeGeometry(shape,{depth:1.92,bevelEnabled:false}),body,-.96,0,0,g);cab.rotation.y=Math.PI/2;
-  // Windows are laid on both sides; z is the vehicle's forward direction.
-  for(const side of [-1,1]){
-    box(.018,h*.72,1.63,side*.97,1.55+h*.35,-.22,M.glass,g);
-    box(.04,h*.9,.09,side*.99,1.5+h*.4,-.17,body,g);
-    box(.018,.035,2.8,side*1.065,1.05,-.2,M.chrome,g);
-    box(.04,.06,.25,side*1.08,1.26,-.3,M.chrome,g);
-    box(.26,.17,.35,side*1.18,1.57,.9,body,g);
-  }
-  const wind=box(1.77,h*.82,.04,0,1.54+h*.37,isBox?1.03:1.05,M.glass,g);wind.rotation.x=isBox?-.1:-.51;
-  const back=box(1.77,h*.72,.04,0,1.5+h*.35,-1.3,M.glass,g);back.rotation.x=.2;
-  box(1.9,.09,isBox?2.32:1.95,0,1.35+h,-.23,body,g);
-  if(isBox){for(const sx of [-.85,.85])box(.08,.1,2.7,sx,2.8,-.1,M.edge,g);box(.08,.1,1.1,0,1.59,1.65,body,g);}
-  const tireR=sedan?.42:.49;
-  for(const xx of [-1.06,1.06])for(const zz of [-1.48,1.48]){
-    const wheel=cyl(tireR,tireR,.25,xx,.52,zz,M.tire,g,24);wheel.rotation.z=Math.PI/2;
-    const rim=cyl(tireR*.73,tireR*.73,.265,xx,.52,zz,M.chrome,g,20);rim.rotation.z=Math.PI/2;
-    const hub=cyl(tireR*.45,tireR*.45,.28,xx,.52,zz,M.edge,g,12);hub.rotation.z=Math.PI/2;
-    for(let k=0;k<7;k++){let a=k*Math.PI*2/7;const spoke=box(.29,.035,tireR*1.36,xx,.52,zz,M.chrome,g);spoke.rotation.x=a;}
-  }
-  box(1.04,.38,.045,0,.97,2.35,M.edge,g);
-  for(let i=-4;i<=4;i++)box(.055,.3,.025,i*.1,.97,2.38,M.chrome,g);
-  for(const sx of [-.76,.76]){
-    if(isBox){const head=cyl(.19,.19,.05,sx,1.21,2.34,M.headlight,g,20);head.rotation.x=Math.PI/2;}
-    else {box(.58,.17,.04,sx,1.24,2.34,M.glass,g);box(.57,.035,.055,sx,1.29,2.37,M.headlight,g);box(.05,.12,.055,sx+(sx>0?.25:-.25),1.25,2.37,M.headlight,g);}
-    box(.56,.13,.04,sx,1.13,-2.35,M.taillight,g);
-  }
-  box(.65,.17,.03,0,.76,2.39,M.cream,g);label('P I N E',.53,.11,0,.77,2.412,'#283133',null,g);
-  box(.65,.17,.03,0,.78,-2.39,M.cream,g);
-  if(isBox){const spare=cyl(.49,.49,.27,0,1.22,-2.52,M.tire,g,24);spare.rotation.x=Math.PI/2;const cap=cyl(.35,.35,.29,0,1.22,-2.53,body,g,20);cap.rotation.x=Math.PI/2;}
-  const sin=Math.abs(Math.sin(rotation)),cos=Math.abs(Math.cos(rotation));obstacle(x,z,2.4*cos+4.9*sin,4.9*cos+2.4*sin);
-  return g;
-}
-car(-18,5,.12,'#a8afb2','suv');car(26,13.5,Math.PI/2,'#e5e3db','sedan');car(8,10,-.5,'#193b30','box');
+// Recognisable vehicles reconstructed from the supplied reference.
+const vehicles=createVehicles(model,obstacle);
+tube([[30.7,1.2,13.5],[30.1,.35,13.5],[29.1,.25,14.2],[28.25,1.12,14.45]],.035,M.tire);
 
 // Landscape islands, rail fencing, lamps and a tiny roadside marker.
 function planter(x,z,w=5,d=2){box(w,.28,d,x,.14,z,M.curb);box(w-.22,.3,d-.22,x,.16,z,M.dirt);for(let i=0;i<w*2;i++){const px=x+(rand()-.5)*(w-.4),pz=z+(rand()-.5)*(d-.3);sphere(.32+rand()*.22,px,.4,pz,mat(['#55613d','#6c7342','#4b5940'][i%3]));}obstacle(x,z,w,d);}
@@ -273,7 +234,8 @@ function batchGroup(group){
     const geometries=objects.map(o=>{o.updateMatrix();const g=o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone();return g.applyMatrix4(o.matrix);});
     const geometry=mergeGeometries(geometries);geometries.forEach(g=>g.dispose());
     if(!geometry)continue;
-    const merged=new THREE.Mesh(geometry,objects[0].material);merged.name=group.name+' details';merged.castShadow=objects[0].castShadow;merged.receiveShadow=true;
+    const compactGeometry=mergeVertices(geometry,1e-5);geometry.dispose();
+    const merged=new THREE.Mesh(compactGeometry,objects[0].material);merged.name=group.name+' details';merged.castShadow=objects[0].castShadow;merged.receiveShadow=true;
     for(const o of objects){group.remove(o);o.geometry.dispose();}group.add(merged);
   }
 }
@@ -286,6 +248,7 @@ const isTouch=matchMedia('(pointer:coarse)').matches;
 function toast(text){$('toast').textContent=text;$('toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.remove('show'),3800);}
 function setView(i){setMode(false);const view=views[i];transition={from:camera.position.clone(),target:controls.target.clone(),to:new THREE.Vector3(...view.p),look:new THREE.Vector3(...view.t),start:performance.now()};document.querySelectorAll('.view').forEach((el,j)=>el.classList.toggle('active',i===j));}
 function setMode(walk){
+  document.body.classList.remove('vehicle-focus');$('vehicle-info').hidden=true;
   walking=walk;transition=null;keys={};document.body.classList.toggle('walking',walk);$('orbit-mode').classList.toggle('selected',!walk);$('walk-mode').classList.toggle('selected',walk);$('crosshair').hidden=!walk;$('walk-hint').hidden=!walk;$('mobile-move').hidden=!(walk&&isTouch);controls.enabled=!walk;
   if(walk){camera.position.set(3,1.72,19);yaw=0;pitch=-.02;camera.rotation.order='YXZ';camera.rotation.set(pitch,yaw,0);$('help').innerHTML='<span class="mouse-icon">⌨</span><span>W A S D — движение<small>Shift — быстрее · Esc — отпустить мышь</small></span>';if(isTouch)$('walk-hint').innerHTML='Тяните по экрану, чтобы осмотреться<br><small>Стрелки слева — движение</small>';}
   else{if(document.pointerLockElement)document.exitPointerLock();camera.rotation.order='XYZ';controls.target.copy(camera.position).add(camera.getWorldDirection(new THREE.Vector3()).multiplyScalar(12));controls.update();$('help').innerHTML='<span class="mouse-icon">↔</span><span>Тяните, чтобы осмотреться<small>Колесо — масштаб · Правая кнопка — сдвиг</small></span>';}
@@ -303,10 +266,23 @@ document.addEventListener('keydown',e=>{if(e.target instanceof HTMLInputElement|
 document.addEventListener('keyup',e=>{keys[e.code]=false;});window.addEventListener('blur',()=>{keys={};dragging=false;});
 document.querySelectorAll('[data-move]').forEach(b=>{b.onpointerdown=e=>{e.preventDefault();keys[b.dataset.move]=true;b.setPointerCapture(e.pointerId);};b.onpointerup=b.onpointercancel=()=>{keys[b.dataset.move]=false;};});
 const blocked=(x,z)=>x< -34.5||x>34.5||z< -27||z>30||collisions.some(b=>Math.abs(x-b.x)<b.w&&Math.abs(z-b.z)<b.d);
-$('settings').onclick=()=>{$('light-panel').hidden=!$('light-panel').hidden;};$('close-settings').onclick=()=>{$('light-panel').hidden=true;};
+$('settings').onclick=()=>{$('vehicle-panel').hidden=true;$('light-panel').hidden=!$('light-panel').hidden;};$('close-settings').onclick=()=>{$('light-panel').hidden=true;};
 $('reference').onclick=()=>{if(document.pointerLockElement)document.exitPointerLock();keys={};$('reference-modal').showModal();};$('close-reference').onclick=()=>$('reference-modal').close();$('reference-modal').onclick=e=>{if(e.target===$('reference-modal'))$('reference-modal').close();};
 $('fullscreen').onclick=async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await document.documentElement.requestFullscreen();}catch{toast('Полный экран недоступен в этом окне браузера.');}};
 $('reflections').onchange=e=>{wetGround.visible=e.target.checked;};
+$('vehicles').onclick=()=>{$('light-panel').hidden=true;$('vehicle-panel').hidden=!$('vehicle-panel').hidden;};
+$('close-vehicles').onclick=()=>{$('vehicle-panel').hidden=true;};
+document.querySelectorAll('[data-vehicle]').forEach(button=>button.onclick=()=>{
+  const vehicle=vehicles.find(v=>v.id===button.dataset.vehicle);setMode(false);document.body.classList.add('vehicle-focus');
+  vehicle.group.updateWorldMatrix(true,false);
+  const to=vehicle.group.localToWorld(new THREE.Vector3(-5,2.75,6.4));
+  const look=vehicle.group.localToWorld(new THREE.Vector3(0,1.0,0));
+  transition={from:camera.position.clone(),target:controls.target.clone(),to,look,start:performance.now()};
+  $('vehicle-name').textContent=vehicle.name;$('vehicle-info').hidden=false;$('vehicle-panel').hidden=true;
+  document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
+});
+$('vehicle-back').onclick=()=>setView(0);
+
 $('light').oninput=e=>{const v=Number(e.target.value)/100;skyMaterial.uniforms.sunDir.value.set(-.62,.02+v*.48,-.77).normalize();sun.position.y=7+v*80;sun.intensity=1.1+v*5;renderer.toneMappingExposure=.75+v*.8;sun.color.setHSL(.055+v*.04,.6,.7);$('light-label').textContent=v<.15?'Сумерки':v<.55?'Закат':'Золотой час';};
 $('export').onclick=async()=>{
   const b=$('export');b.disabled=true;toast('Подготавливаю 3D-модель…');
