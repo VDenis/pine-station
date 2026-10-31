@@ -28,6 +28,11 @@ model-viewer{width:min(680px,100%);height:min(58vh,520px);margin:26px auto 0;bac
 .fail{display:none;margin-top:26px;font-size:12px;line-height:1.8;opacity:.8;max-width:430px}
 .guide{margin-top:26px;font-size:10px;letter-spacing:1.5px;opacity:.4}
 .guide a{color:#eab57b}
+.diag{display:none;margin-top:26px;max-width:430px;width:100%;text-align:left;background:#141d20e6;border:1px solid #ffffff20;border-radius:12px;padding:16px 18px;font-family:ui-monospace,Menlo,monospace;font-size:10px;line-height:2}
+.diag b{display:block;color:#f1c291;font-family:Manrope,Arial,sans-serif;font-size:10px;letter-spacing:2px;margin-bottom:8px}
+.diag .row{display:flex;justify-content:space-between;gap:14px}
+.diag .row span:last-child{color:#eab57b;text-align:right}
+.diag button{margin-top:12px;width:100%;background:#1520265c;border:1px solid #ffffff23;border-radius:8px;color:inherit;font:inherit;font-size:10px;padding:11px;cursor:pointer}
 </style>
 </head>
 <body>
@@ -51,7 +56,18 @@ model-viewer{width:min(680px,100%);height:min(58vh,520px);margin:26px auto 0;bac
 <div class="warn" id="warn"></div>
 <div class="fail" id="fail">Не удалось запустить встроенный просмотрщик. Откройте <a href="./">полную интерактивную сцену</a> — она работает в любом браузере.</div>
 
-<div class="guide">MODEL-VIEWER · <a href="https://developers.google.com/ar/devices">поддерживаемые AR-телефоны</a></div>
+<div class="guide">V3 · MODEL-VIEWER · <a href="https://developers.google.com/ar/devices">поддерживаемые AR-телефоны</a> · <a href="#" id="diag-toggle">диагностика</a></div>
+
+<div class="diag" id="diag">
+  <b>ОТЧЁТ ОБ УСТРОЙСТВЕ · СТРАНИЦА V3</b>
+  <div class="row"><span>Браузер</span><span id="d-ua">—</span></div>
+  <div class="row"><span>Безопасный контекст (HTTPS)</span><span id="d-sec">—</span></div>
+  <div class="row"><span>WebXR API в браузере</span><span id="d-xr">—</span></div>
+  <div class="row"><span>AR-сессия (immersive-ar / ARCore)</span><span id="d-ar">проверка…</span></div>
+  <div class="row"><span>Кнопка AR активна (canActivateAR)</span><span id="d-btn">—</span></div>
+  <div class="row"><span>Модель</span><span id="d-glb">—</span></div>
+  <button id="copy">Скопировать отчёт и отправить разработчику</button>
+</div>
 
 <script>
 const mv = document.getElementById('mv');
@@ -87,6 +103,32 @@ mv.addEventListener('ar-status', e => {
 document.getElementById('scene-viewer').href =
   'intent://arvr.google.com/scene-viewer/1.2?' + new URLSearchParams({ file: glb, mode: 'ar_only', title: 'Pine Station' }) +
   '#Intent;scheme=https;package=com.google.ar.core;action=android.intent.action.VIEW;S.browser_fallback_url=' + encodeURIComponent(location.href) + ';end';
+
+// Диагностика: собираем факты об устройстве, а не догадки.
+const diag = document.getElementById('diag');
+const dset = (id, v) => document.getElementById(id).textContent = v;
+document.getElementById('diag-toggle').onclick = e => { e.preventDefault(); diag.style.display = diag.style.display === 'block' ? 'none' : 'block'; };
+const chrome = (navigator.userAgent.match(/Chrome\/(\d+)/) || [])[1] || 'не Chrome';
+const android = /android/i.test(navigator.userAgent);
+let arVerdict = '—';
+async function fillDiag() {
+  dset('d-ua', android ? 'Android · Chrome ' + chrome : 'не Android: ' + navigator.userAgent.slice(0, 40) + '…');
+  dset('d-sec', window.isSecureContext ? 'да' : 'НЕТ — нужен HTTPS');
+  dset('d-xr', navigator.xr ? 'есть' : 'НЕТ');
+  try {
+    arVerdict = navigator.xr ? (await navigator.xr.isSessionSupported('immersive-ar') ? 'ПОДДЕРЖИВАЕТСЯ ✅' : 'не поддерживается ❌') : 'нет WebXR API';
+  } catch (e) { arVerdict = 'ошибка проверки: ' + e.message; }
+  dset('d-ar', arVerdict);
+  dset('d-btn', mv.canActivateAR ? 'да' : 'НЕТ');
+  dset('d-glb', 'v2 · 29 МБ · ' + (mv.loaded ? 'загружена' : 'грузится…'));
+}
+mv.addEventListener('load', fillDiag);
+setTimeout(fillDiag, 3000); // кнопка AR и статус загрузки могут быть известны не сразу
+document.getElementById('copy').onclick = async () => {
+  const report = [...diag.querySelectorAll('.row')].map(r => r.textContent.trim().replace(/\s+/g, ': ')).join('\n');
+  try { await navigator.clipboard.writeText('Pine Station AR report\n' + report + '\n' + navigator.userAgent); document.getElementById('copy').textContent = 'Отчёт скопирован — вставь его в сообщение'; }
+  catch { document.getElementById('copy').textContent = 'Не удалось скопировать — сфотографируй панель'; }
+};
 </script>
 </body>
 </html>
