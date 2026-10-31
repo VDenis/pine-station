@@ -4,7 +4,7 @@
 
 ## Открыть
 
-Онлайн: https://pine-station-3d-denis.john-doe-g911.chatgpt.site
+Онлайн: https://vdenis.github.io/pine-station/ · AR: https://vdenis.github.io/pine-station/ar.html
 
 Локально из этой папки:
 
