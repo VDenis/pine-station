@@ -1,5 +1,18 @@
 {
   "dependencies": {
     "three": "^0.180.0"
+  },
+  "devDependencies": {
+    "@gltf-transform/core": "^4.5.1",
+    "@gltf-transform/extensions": "^4.5.1",
+    "@gltf-transform/functions": "^4.5.1",
+    "gltf-validator": "^2.0.0-dev.3.10",
+    "meshoptimizer": "^1.3.0",
+    "sharp": "^0.35.5"
+  },
+  "type": "module",
+  "scripts": {
+    "build:ar": "node scripts/build-ar-model.mjs",
+    "test": "node --test tests/ar.test.mjs"
   }
 }

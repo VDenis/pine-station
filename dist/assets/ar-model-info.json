@@ -1,0 +1,10 @@
+{
+  "bytes": 2401188,
+  "triangles": 64835,
+  "materials": 66,
+  "widthMetres": 0.9,
+  "extensions": [
+    "KHR_materials_unlit",
+    "KHR_texture_transform"
+  ]
+}
