@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Pine Station — AR</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
+:root{font-family:Manrope,Arial,sans-serif;color:#fff6e9;background:#1d292c;font-synthesis:none;color-scheme:dark}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:34px 24px;background:radial-gradient(120% 90% at 50% 0%,#2b3a3e 0%,#1d292c 48%,#161f22 100%);text-align:center}
+.tree{font-size:56px;color:#eab57b;filter:drop-shadow(0 4px 18px #eab57b44)}
+.brand{font-size:14px;font-weight:800;letter-spacing:3px;margin:22px 0 6px}
+.brand small{display:block;font-size:8px;letter-spacing:2.5px;font-weight:500;opacity:.55;margin-top:7px}
+h1{font-size:clamp(26px,6vw,40px);line-height:1.15;letter-spacing:-1.2px;font-weight:500;margin:26px 0 14px}
+h1 span{color:#eab57b}
+p.lead{font-size:13px;line-height:1.9;opacity:.72;max-width:420px;margin:0 auto}
+.cta{display:inline-flex;align-items:center;gap:12px;margin-top:34px;background:#f0dbb9;color:#283133;border:0;border-radius:10px;padding:17px 30px;font:inherit;font-weight:700;font-size:14px;letter-spacing:.4px;cursor:pointer;text-decoration:none;box-shadow:0 14px 40px #f0dbb933}
+.cta:active{transform:translateY(1px)}
+.cta em{font-style:normal;font-size:17px}
+.secondary{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:16px}
+.secondary a{color:#fff6e9;text-decoration:none;font-size:11px;background:#1520265c;border:1px solid #ffffff23;backdrop-filter:blur(18px);border-radius:8px;padding:12px 17px}
+.steps{display:flex;gap:14px;justify-content:center;margin-top:44px;max-width:560px}
+.step{flex:1;min-width:130px;text-align:left}
+.step b{display:block;font-size:9px;letter-spacing:2px;color:#f1c291;margin-bottom:9px}
+.step span{font-size:11px;line-height:1.75;opacity:.62}
+.note{margin-top:40px;font-size:10px;line-height:1.8;opacity:.5;max-width:420px}
+.note code{color:#eab57b;font-family:ui-monospace,Menlo,monospace;font-size:9px}
+.warn{display:none;margin-top:30px;font-size:12px;line-height:1.8;color:#f1c291;background:#3a2f2050;border:1px solid #eab57b40;border-radius:10px;padding:14px 18px;max-width:420px}
+body.not-android .cta,body.not-android .steps{display:none}
+body.not-android .warn{display:block}
+.guide{margin-top:34px;font-size:10px;letter-spacing:1.5px;opacity:.4}
+.guide a{color:#eab57b}
+</style>
+</head>
+<body>
+<div class="tree">🌲</div>
+<div class="brand">PINE STATION<small>LOCATION STUDY / AR</small></div>
+<h1>Станция среди сосен<br><span>в дополненной реальности</span></h1>
+<p class="lead">Вся локация — заправка, кафе, зарядная станция и три автомобиля — встанет на любую ровную поверхность в реальном мире, в настоящем масштабе.</p>
+
+<a class="cta" id="open" href="#"><em>⌖</em> Открыть в AR</a>
+<div class="secondary">
+  <a id="view3d" href="#">3D-просмотр без AR</a>
+  <a href="./">Полная интерактивная сцена</a>
+</div>
+<div class="guide">GOOGLE SCENE VIEWER · <a id="device-check" href="https://developers.google.com/ar/devices">список поддерживаемых телефонов</a></div>
+
+<div class="warn" id="warn"></div>
+
+<div class="steps">
+  <div class="step"><b>01 · НАВЕДИ</b><span>Медленно проведите телефоном над полом или столом, пока не появится сетка.</span></div>
+  <div class="step"><b>02 · ПОСТАВЬ</b><span>Коснитесь экрана — станция появится на этом месте. Перетаскивайте, чтобы выбрать точку.</span></div>
+  <div class="step"><b>03 · ОСМОТРИ</b><span>Вращайте и приближайте пальцами. Обойдите станцию кругом — масштаб настоящий.</span></div>
+</div>
+
+<p class="note">Модель ≈ 29 МБ — при первом запуске подождите загрузку. Страница и модель должны открываться с телефона по HTTPS; текущий адрес модели: <code id="glb-url"></code></p>
+
+<script>
+// Модель живёт рядом со страницей — URL вычисляется, поэтому хостинг может быть любым.
+const glb = new URL('assets/pine-station.glb', location.href).href;
+const params = new URLSearchParams({ file: glb, mode: 'ar_only', title: 'Pine Station', link: new URL('./', location.href).href });
+const fallback = encodeURIComponent(location.href);
+const intent = 'intent://arvr.google.com/scene-viewer/1.2?' + params + '#Intent;scheme=https;package=com.google.ar.core;action=android.intent.action.VIEW;S.browser_fallback_url=' + fallback + ';end';
+document.getElementById('open').href = intent;
+document.getElementById('view3d').href = 'https://arvr.google.com/scene-viewer/1.2?' + new URLSearchParams({ file: glb, mode: '3d_only', title: 'Pine Station' });
+document.getElementById('glb-url').textContent = glb;
+if (!/android/i.test(navigator.userAgent)) {
+  document.body.classList.add('not-android');
+  document.getElementById('warn').textContent = 'AR-режим работает на Android с Google Play Services for AR. Откройте эту страницу на телефоне — или посмотрите модель в 3D без AR ниже.';
+}
+</script>
+</body>
+</html>
